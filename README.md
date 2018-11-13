@@ -1,2 +1,2 @@
 # PythonExercises
-Password manager and Spotify player in python.
+EX 6: Password manager and Spotify player in python.
