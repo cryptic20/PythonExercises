@@ -60,8 +60,6 @@ if __name__ == '__main__':
     short_haul_flight = ShortHaulAircraft(110, "Airbus-A220")
     short_haul_flight2 = ShortHaulAircraft(85, "Airbus-A220")
 
-    print(short_haul_flight.get_serial_number())
-
     assert short_haul_flight.get_serial_number() == 0
     assert short_haul_flight2.get_serial_number() == 1
 
