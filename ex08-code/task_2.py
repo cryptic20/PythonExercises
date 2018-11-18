@@ -1,3 +1,74 @@
+class UniPerson:
+    def __init__(self, name):
+        self._name = name
+        self.__inbox = []
+
+    def receive_email(self, text):
+        self.__inbox.append(text)
+
+    def read_emails(self):
+        emails = self.__inbox.copy()
+        self.__inbox.clear()
+        return emails
+
+    def __str__(self):
+        return f'Name: {self._name}'
+
+
+class Student(UniPerson):
+    student_dict = {}
+    student_number = -1
+
+    def __init__(self, name, start_year, has_graduated, ects):
+        UniPerson.__init__(self, name)
+        if start_year in Student.student_dict:
+            Student.student_dict[start_year] += 1
+        else:
+            Student.student_dict[start_year] = Student.student_number+1
+        self.start_year = start_year
+        self.has_graduated = has_graduated
+        self.__ects = ects
+        self.__legi_nr = f'{start_year}-{str(Student.student_dict[start_year]).zfill(5)}'
+
+    def __str__(self):
+        summary = f'{UniPerson.__str__(self)}\nStart Year: {self.__legi_nr}\nGraduated: {self.has_graduated}' \
+                  f'\nNo. of ECTS: {self.__ects}'
+        return summary
+
+
+class Lecturer(UniPerson):
+    def __init__(self, name, lecture_name):
+        UniPerson.__init__(self, name)
+        self.__lecture_name = lecture_name
+
+    def __str__(self):
+        summary = f'{UniPerson.__str__(self)}\nLecture: {self.__lecture_name}'
+        return summary
+
+
+class UniManagement:
+    def __init__(self):
+        self.__persons = []
+
+    def add_person(self, person):
+        self.__persons.append(person)
+
+    def list_persons(self,):
+        return [person.__str__(self) for person in self.__persons]
+
+    def send_email(self, text):
+        for person in self.__persons:
+            person.receive_email(text)
+
+    def count_alumni(self):
+        count = 0
+        for person in self.__persons:
+            if hasattr(person, 'has_graduated'):
+                if getattr(person, 'has_graduated'):
+                    count += 1
+        return count
+
+
 if __name__ == '__main__':
     p1 = UniPerson("Hans Muster")
     assert p1.__str__() == "Name: Hans Muster"
