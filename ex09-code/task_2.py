@@ -1,3 +1,93 @@
+from abc import ABC, abstractmethod
+
+
+class Toy:
+    def __init__(self, name):
+        self.name = name
+        self.is_assembled = False
+        self.is_painted = False
+        self.is_wrapped = False
+
+    def is_complete(self):
+        if self.is_assembled and self.is_painted and self.is_wrapped:
+            return True
+        else:
+            return False
+
+
+class AssemblyLine:
+    def __init__(self, toys):
+        self.__toys = toys
+
+    def get_toys(self):
+        return self.__toys
+
+    def get_number_of_toys(self):
+        return len(self.__toys)
+
+    def take_toy(self):
+        if self.__toys:
+            first_toy = self.__toys[0]
+            self.__toys.remove(self.__toys[0])  # remove toy
+            return first_toy
+        else:
+            return None
+
+    def put_toy_back(self, toy):
+        self.__toys.append(toy)
+
+
+class Elf(ABC):
+    def __init__(self):
+        self._toy_working_on = None
+
+    @abstractmethod
+    def do_job(self):
+        pass
+
+    def take_from(self, assembly_line):
+        if self._toy_working_on is None:
+            self._toy_working_on = assembly_line.take_toy()
+
+    def put_back(self, assembly_line):
+        assembly_line.put_toy_back(self._toy_working_on)
+        self._toy_working_on = None
+
+
+class AssemblerElf(Elf):
+    def __init__(self):
+        Elf.__init__(self)
+
+    def do_job(self):
+        self._toy_working_on.is_assembled = True
+
+
+class PainterElf(Elf):
+    def __init__(self):
+        Elf.__init__(self)
+
+    def do_job(self):
+        self._toy_working_on.is_painted = True
+
+
+class WrapperElf(Elf):
+    def __init__(self):
+        Elf.__init__(self)
+
+    def do_job(self):
+        if self._toy_working_on.is_painted and self._toy_working_on.is_painted:
+            self._toy_working_on.is_wrapped = True
+
+
+class Santa:
+
+    def verify(self, assembly_line):
+        for toy in assembly_line.get_toys():
+            if not toy.is_complete():
+                return False
+        return True
+
+
 if __name__ == '__main__':
     # Create three toys
     toy1 = Toy("Toy1")

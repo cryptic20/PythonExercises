@@ -1,7 +1,7 @@
 import os
 from unittest import TestCase
 
-import task1 as car_wash_service
+import task_1 as car_wash_service
 
 
 class CarWashJobTest(TestCase):
