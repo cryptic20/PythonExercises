@@ -1,15 +1,17 @@
+from abc import ABC, abstractmethod
+
+
 class CarWash(object):
-    def __init__(self):
-        self.persistence = {}
+    def __init__(self, persistence):
+        self.persistence = persistence
         self.sms_sender = SmsSender()
 
     def register_car_for_wash(self, car, customer):
-        job = CarWashJob(car, customer)
-        self.persistence[job.job_id] = job
+        job = self.persistence.save(CarWashJob(car, customer))
         return job.job_id
 
     def complete_wash(self, job_id):
-        job = self.persistence[job_id]
+        job = self.persistence.find_by_id(job_id)
         self.sms_sender.send(job.contact_details, job.notification_message)
 
 
@@ -56,8 +58,34 @@ class SmsSender(object):
         # ... do some weird SMS magic
 
 
+class CarJobRepository(ABC):
+    @abstractmethod
+    def save(self, obj):
+        pass
+
+    @abstractmethod
+    def find_by_id(self, obj):
+        pass
+
+
+class InMemoryCarJobRepository(CarJobRepository):
+    persistence_dict = {}
+
+    def save(self, obj):
+        InMemoryCarJobRepository.persistence_dict[obj.job_id] = obj
+        return obj
+
+    def find_by_id(self, obj):
+        job_id = InMemoryCarJobRepository.persistence_dict.get(obj)
+        if not job_id:
+            raise ValueError
+        else:
+            return job_id
+
+
 if __name__ == '__main__':
-    car_wash = CarWash()
+    in_mem_db = InMemoryCarJobRepository()
+    car_wash = CarWash(in_mem_db)
     car1 = Car('ZH 123456')
     car2 = Car('AG 654321')
     customer1 = Customer('Foo', '079 xxx xxxx')
