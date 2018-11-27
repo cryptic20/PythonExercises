@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 import os
+import csv
 
 
 class CarWash(object):
@@ -19,7 +20,7 @@ class CarWash(object):
 class CarWashJob:
     job_counter = 0
 
-    def __init__(self, car, customer, *job_id):
+    def __init__(self, car, customer, job_id=None):
         self.car = car
         self.customer = customer
         if job_id:
@@ -92,14 +93,21 @@ class FileCarJobRepository(CarJobRepository):
             self.drop_db()
 
     def save(self, obj):
-        pass
+        with open(self.file_name, 'w', ) as tsv_file:
+            tsv_out = csv.writer(tsv_file, delimiter='\t')
+            tsv_out.writerow([obj.job_id, obj.car.plate, obj.customer.name, obj.customer.mobile_phone])
+            return obj
 
     def find_by_id(self, obj):
-        pass
+        with open('car-wash-db.tsv') as tsv_file:
+            data = csv.reader(tsv_file, delimiter='\t')
+            for row in data:
+                if row:
+                    if row[0] == obj:
+                        return CarWashJob(Car(row[1]), Customer(row[2], row[3]), row[0])
 
     def drop_db(self):
         if os.path.exists(self.file_name):
-            print(f'dropping table {self.file_name}')
             os.remove(self.file_name)
 
 
@@ -117,10 +125,12 @@ if __name__ == '__main__':
 
     job_id1 = in_memory_car_wash.register_car_for_wash(car1, customer1)
     job_id2 = in_memory_car_wash.register_car_for_wash(car2, customer2)
+    job_id3 = file_db_car_wash.register_car_for_wash(car1, customer1)
 
     assert job_id1 != job_id2
 
     in_memory_car_wash.complete_wash(job_id1)
-   # file_db_car_wash.complete_wash(job_id2)
+    file_db_car_wash.complete_wash(job_id3)
+
 
 
