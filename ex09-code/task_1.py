@@ -4,9 +4,9 @@ import csv
 
 
 class CarWash(object):
-    def __init__(self, persistence):
+    def __init__(self, persistence, notifier):
         self.persistence = persistence
-        self.sms_sender = SmsSender()
+        self.notifier = notifier
 
     def register_car_for_wash(self, car, customer):
         job = self.persistence.save(CarWashJob(car, customer))
@@ -14,7 +14,7 @@ class CarWash(object):
 
     def complete_wash(self, job_id):
         job = self.persistence.find_by_id(job_id)
-        self.sms_sender.send(job.contact_details, job.notification_message)
+        self.notifier.send(job)
 
 
 class CarWashJob:
@@ -40,7 +40,7 @@ class CarWashJob:
 
     @property
     def notification_message(self):
-        return f'Job {self.job_id}, Car {self.car.plate}'
+        return f'Job {self.job_id}, Car {self.car.plate} washed.'
 
 
 class Customer(object):
@@ -54,12 +54,6 @@ class Car(object):
         self.plate = plate
 
 
-class SmsSender(object):
-    def send(self, phone_number, msg):
-        print(f'Sending text message to {phone_number}: {msg}')
-        # ... do some weird SMS magic
-
-
 class CarJobRepository(ABC):
     @abstractmethod
     def save(self, obj):
@@ -68,6 +62,22 @@ class CarJobRepository(ABC):
     @abstractmethod
     def find_by_id(self, obj):
         pass
+
+
+class Notifier(ABC):
+    @abstractmethod
+    def send(self, msg):
+        return f'Sending message...'
+
+
+class SmsSender(Notifier):
+    def send(self,  job):
+        print(f'Sending sms to {job.customer.mobile_phone}, Message : Job {job.job_id}, Car {job.car.plate} washed.')
+
+
+class CallSender(Notifier):
+    def send(self, job):
+        print(f'Calling {job.customer.mobile_phone}, Message: Job {job.job_id}, Car {job.car.plate} washed.')
 
 
 class InMemoryCarJobRepository(CarJobRepository):
@@ -93,10 +103,10 @@ class FileCarJobRepository(CarJobRepository):
             self.drop_db()
 
     def save(self, obj):
-        with open(self.file_name, 'w', ) as tsv_file:
+        with open(self.file_name, 'a', ) as tsv_file:
             tsv_out = csv.writer(tsv_file, delimiter='\t')
             tsv_out.writerow([obj.job_id, obj.car.plate, obj.customer.name, obj.customer.mobile_phone])
-            return obj
+        return obj
 
     def find_by_id(self, obj):
         with open('car-wash-db.tsv') as tsv_file:
@@ -105,6 +115,8 @@ class FileCarJobRepository(CarJobRepository):
                 if row:
                     if row[0] == obj:
                         return CarWashJob(Car(row[1]), Customer(row[2], row[3]), row[0])
+                    else:
+                        raise ValueError
 
     def drop_db(self):
         if os.path.exists(self.file_name):
@@ -115,8 +127,11 @@ if __name__ == '__main__':
     in_mem_db = InMemoryCarJobRepository()
     file_db = FileCarJobRepository('car-wash-db.tsv', drop_on_startup=True)
 
-    in_memory_car_wash = CarWash(in_mem_db)
-    file_db_car_wash = CarWash(file_db)
+    sms_sender = SmsSender()
+    call_sender = CallSender()
+
+    in_memory_car_wash = CarWash(in_mem_db, sms_sender)
+    file_db_car_wash = CarWash(file_db, call_sender)
 
     car1 = Car('ZH 123456')
     car2 = Car('AG 654321')

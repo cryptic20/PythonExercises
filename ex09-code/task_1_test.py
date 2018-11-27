@@ -21,7 +21,7 @@ class CarWashJobTest(TestCase):
 
     def test_notification_message(self):
         job = car_wash_service.CarWashJob(self.car1, self.customer1)
-        self.assertEqual(f'Job {job.job_id}, Car {job.car_plate} washed.', job.notification_message,
+        self.assertEqual(f'Job {job.job_id}, Car {job.car.plate} washed.', job.notification_message,
                          'The notification message seems wrong...')
 
     def test_contact_details(self):
