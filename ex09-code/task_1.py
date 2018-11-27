@@ -1,4 +1,6 @@
 from abc import ABC, abstractmethod
+import csv
+import os
 
 
 class CarWash(object):
@@ -78,22 +80,48 @@ class InMemoryCarJobRepository(CarJobRepository):
     def find_by_id(self, obj):
         job_id = InMemoryCarJobRepository.persistence_dict.get(obj)
         if not job_id:
-            raise ValueError
+            raise ValueError('No job with the given id is found!')
         else:
             return job_id
 
 
+class FileCarJobRepository(CarJobRepository):
+
+    def __init__(self, file_name, drop_on_startup=False):
+        self.file_name = file_name
+        if drop_on_startup:
+            self.drop_db()
+
+    def save(self, obj):
+        pass
+
+    def find_by_id(self, obj):
+        pass
+
+    def drop_db(self):
+        if os.path.exists(self.file_name):
+            print(f'dropping table {self.file_name}')
+            os.remove(self.file_name)
+
+
 if __name__ == '__main__':
     in_mem_db = InMemoryCarJobRepository()
-    car_wash = CarWash(in_mem_db)
+    file_db = FileCarJobRepository('car-wash-db.tsv', drop_on_startup=True)
+
+    in_memory_car_wash = CarWash(in_mem_db)
+    file_db_car_wash = CarWash(file_db)
+
     car1 = Car('ZH 123456')
     car2 = Car('AG 654321')
     customer1 = Customer('Foo', '079 xxx xxxx')
     customer2 = Customer('Bar', '078 xxx xxxx')
 
-    job_id1 = car_wash.register_car_for_wash(car1, customer1)
-    job_id2 = car_wash.register_car_for_wash(car2, customer2)
+    job_id1 = in_memory_car_wash.register_car_for_wash(car1, customer1)
+    job_id2 = in_memory_car_wash.register_car_for_wash(car2, customer2)
+
     assert job_id1 != job_id2
 
-    car_wash.complete_wash(job_id1)
+    in_memory_car_wash.complete_wash(job_id1)
+   # file_db_car_wash.complete_wash(job_id2)
+
 
