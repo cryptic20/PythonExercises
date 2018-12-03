@@ -1,11 +1,11 @@
-from base64_encoder import encode_base64_str as encoder
-from base64_decoder import decode_base64_str as decoder
+from base64_encoder import encode_base64_str as encode
+from base64_decoder import decode_base64_str as decode
 
 
 def verify_encoding_decoding(string):
-    encode = encoder(string)
-    decode = decoder(encode)
-    return True if string == decode else False
+    encoded_string = encode(string)
+    decoded_string = decode(encoded_string)
+    return True if string == decoded_string else False
 
 
 if __name__ == '__main__':
