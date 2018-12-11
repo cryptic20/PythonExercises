@@ -49,6 +49,8 @@ class GameRunner(object):
         self.hex_codes = self.generate_hex_codes()
 
     def generate_hex_codes(self):
+        choice = '0123456789ABCDEF'
+        rand = random.randint(0, len(choice))
         return ["0x0000"] * (self.columns * self.rows)
 
     def generate_code_lines(self):
@@ -109,6 +111,9 @@ class GameRunner(object):
 
 
 if __name__ == '__main__':
-    logic = WordLogic(num_words=7, length=4, attempts=4)
-    runner = GameRunner(logic)
-    runner.run()
+    # logic = WordLogic(num_words=7, length=4, attempts=4)
+    # runner = GameRunner(logic)
+    # runner.run()
+    seq = '0123456789ABCDEF'
+    rand = random.randint(0, len(seq))
+    print([f'0x{seq[rand]}{seq[rand]}{seq[rand]}{seq[rand]}'])
